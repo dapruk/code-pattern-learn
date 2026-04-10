@@ -41,14 +41,6 @@ The first pattern explored is the BLoC pattern, utilizing a reactive approach to
 
 ---
 
-## Under the Hood: The Observer Pattern
-
-This project bypasses traditional React `useState` and `useEffect` for business logic. Instead, it utilizes `useSyncExternalStore`, a React 18 hook designed for subscribing to external data sources.
-
-The BLoC maintains a set of listeners. When logic triggers a state change via the `emit` method, the BLoC notifies all listeners. The `useSyncExternalStore` hook catches this notification, pulls the fresh state via `getState`, and triggers a targeted re-render of the component.
-
----
-
 ## Testing Strategy
 
 By decoupling the engine from the dashboard, the project achieves maximum test coverage with minimal friction.
