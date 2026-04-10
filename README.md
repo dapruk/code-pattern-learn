@@ -1,73 +1,79 @@
-# React + TypeScript + Vite
+# Code Pattern Learn
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Project Overview
 
-Currently, two official plugins are available:
+This repository serves as a professional sandbox for implementing and documenting advanced software architecture patterns within the React and TypeScript ecosystem. The primary objective is to move beyond standard component-level state management and toward a robust, enterprise-grade separation of concerns.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The project focuses on creating a development environment where business logic is entirely decoupled from the rendering cycle, allowing for high-velocity development and stable, predictable codebases.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Core Principles
 
-## Expanding the ESLint configuration
+The project adheres to three strict architectural constraints:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. **Pure React Components**: All UI components (Views) are strictly presentational. They operate as pure functions of their props, containing zero business logic, zero side effects, and no internal state management.
+2. **Testable Logic**: Business logic is encapsulated in isolated TypeScript classes (BLoCs). These units are designed to be tested in a headless environment, ensuring the engine of the application works correctly without requiring a browser or a DOM.
+3. **Strict Type Safety**: The codebase enforces a strict policy against the use of the `any` type. It leverages TypeScript's advanced type system, including Discriminated Unions and Utility Types, to ensure compile-time safety.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Pattern Implementation: BLoC (Business Logic Component)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+The first pattern explored is the BLoC pattern, utilizing a reactive approach to state management. This implementation uses a Smart-Dumb component split to ensure total isolation.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Architectural Layers
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. **Logic Layer (CountdownBloc.ts)**
+   - A plain TypeScript class that acts as the External Store.
+   - Responsible for state transitions, interval management, and data formatting.
+   - Includes private methods for state creation to ensure the UI receives ready-to-render data.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+2. **View Layer (CountdownView.tsx)**
+   - A pure React component.
+   - Defines a strict interface for props (data and callbacks).
+   - Responsible only for JSX structure and styling.
+
+3. **Widget Layer (CountdownWidget.tsx)**
+   - The Smart Connector or Glue.
+   - Utilizes the `useBloc` hook to subscribe to the BLoC.
+   - Maps BLoC actions and state to the View's props.
+
+---
+
+## Under the Hood: The Observer Pattern
+
+This project bypasses traditional React `useState` and `useEffect` for business logic. Instead, it utilizes `useSyncExternalStore`, a React 18 hook designed for subscribing to external data sources.
+
+The BLoC maintains a set of listeners. When logic triggers a state change via the `emit` method, the BLoC notifies all listeners. The `useSyncExternalStore` hook catches this notification, pulls the fresh state via `getState`, and triggers a targeted re-render of the component.
+
+---
+
+## Testing Strategy
+
+By decoupling the engine from the dashboard, the project achieves maximum test coverage with minimal friction.
+
+### Logic Testing
+
+Targeted at the BLoC class. Tests verify state transitions and math using Vitest fake timers. These tests run in a pure Node environment.
+
+- Path: `src/patterns/bloc/features/countdownBloc.test.ts`
+
+---
+
+## Technical Stack
+
+- Framework: Vite, React 18
+- Router: TanStack Router
+- Icons: Lucide React
+- Testing: Vitest, React Testing Library
+- Styling: Tailwind CSS
+
+---
+
+## Scripts
+
+- `npm run dev`: Start the development server.
+- `npm test`: Run the test suite in watch mode.
+- `npm run test:ui`: Open the interactive Vitest UI dashboard.
+- `npm run build`: Generate the production build.
